@@ -109,7 +109,7 @@
                         <h2 class="text-xl sm:text-2xl dynamic-glow mb-4 animate-on-scroll">About Me</h2>
                         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                             <div class="flex-shrink-0">
-                                <img src="/files/IMG_20250827_153255108_HDR~2.jpg" alt="A photo of Parikshat Singh" class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg border-2 border-current shadow-lg object-cover">
+                                <img src="profile.jpg" alt="A photo of Parikshat Singh" class="w-36 h-36 sm:w-48 sm:h-48 rounded-lg border-2 border-current shadow-lg object-cover">
                             </div>
                             <div class="text-white">
                                 <p class="text-lg font-bold mb-2 animate-on-scroll dynamic-glow">Coder. Creator. Photographer. Explorer.</p>
@@ -177,12 +177,10 @@
             autoplayVideos: true,
         });
 
-        // --- MODIFICATION START ---
-        // The loader animation and setTimeout are gone. We immediately show the terminal.
         terminal.style.visibility = 'visible';
         terminal.style.opacity = '1';
         startTerminal();
-        // --- MODIFICATION END ---
+       
 
         function startTerminal() {
             typeWriter(introTextElement, introText, typeSpeed, () => {
