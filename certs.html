@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parikshat Singh</title>
+    <link rel="icon" type="image/x-icon" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/geometries/TextGeometry.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+    <style>
+        body { background-color: #0d0d0d; color: #00ffc6; font-family: 'Fira Code', monospace; background-image: linear-gradient(rgba(0, 255, 198, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 198, 0.05) 1px, transparent 1px); background-size: 30px 30px; }
+        html { cursor: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwSDE2VjE2SDBWMFoiIGZpbGw9IiMwMEZGQzYiLz48L3N2Zz4='), auto; }
+        a, button, .command-link { cursor: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNOS45ODIgMGwtNy45ODIgMTUuOTg3IDIuOTgxLTIuOTgxIDMuMDE5IDYuMDAxIDMtMS40OTgtMy4wMDQtNi4wMDQgNS45ODMgMi41MDJ6IiBmaWxsPSIjMDBGRkM2Ii8+PC9zdmc+'), pointer; }
+        #loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background-color: #0d0d0d; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease; flex-direction: column; }
+        #loader-canvas { width: 100%; height: 100%; }
+        .loading-ui { position: absolute; bottom: 20%; width: 80%; max-width: 500px; text-align: center; }
+        #loading-text { color: #00ffc6; margin-bottom: 1rem; text-shadow: 0 0 5px #00ffc6; letter-spacing: 2px; font-size: 0.9rem; }
+        #loading-bar-container { width: 100%; height: 15px; border: 2px solid #00ffc6; border-radius: 5px; padding: 2px; box-shadow: 0 0 8px #00ffc6; }
+        #loading-bar { height: 100%; background-color: #00ffc6; border-radius: 2px; width: 0; animation: fill-bar 4s linear forwards; }
+        @keyframes fill-bar { from { width: 0%; } to { width: 100%; } }
+        #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, rgba(0, 255, 198, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 255, 198, 0.1) 50%, rgba(0, 255, 198, 0.1) 75%, transparent 75%, transparent); background-size: 60px 60px; animation: move-grid 8s linear infinite; z-index: 0; pointer-events: none; }
+        @keyframes move-grid { 0% { background-position: 0 0; } 100% { background-position: 60px 60px; } }
+        body::after { content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%); background-size: 100% 4px; z-index: 2; pointer-events: none; animation: scanlines 10s linear infinite; }
+        @keyframes scanlines { 0% { background-position: 0 0; } 100% { background-position: 0 100vh; } }
+        @keyframes flicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: 0.95; } }
+        #terminal { animation: flicker 5s linear infinite; position: relative; z-index: 1; visibility: hidden; opacity: 0; transition: opacity 0.5s ease; }
+        .theme-green .dynamic-glow { color: #00ffc6; text-shadow: 0 0 5px #00ffc6, 0 0 10px #00ffc6; }
+        .theme-orange .dynamic-glow { color: #ff8c00; text-shadow: 0 0 5px #ff8c00, 0 0 10px #ff8c00; }
+        .theme-cyan .dynamic-glow { color: #00ffff; text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff; }
+        .theme-yellow .dynamic-glow { color: #ffff00; text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00; }
+        .border-glow { animation: border-glow-cycle 12s linear infinite; }
+        @keyframes border-glow-cycle { 0%, 100% { border-color: #00ffc6; box-shadow: 0 0 8px #00ffc6, inset 0 0 8px #00ffc6; } 33% { border-color: #ff8c00; box-shadow: 0 0 8px #ff8c00, inset 0 0 8px #ff8c00; } 66% { border-color: #00ffff; box-shadow: 0 0 8px #00ffff, inset 0 0 8px #00ffff; } }
+        .cursor::after { content: '_'; animation: blink 1s step-end infinite; }
+        @keyframes blink { from, to { color: transparent; } 50% { color: #00ffc6; } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0d0d0d; }
+        ::-webkit-scrollbar-thumb { background: #00ffc6; border-radius: 4px; box-shadow: 0 0 5px #00ffc6; }
+        ::-webkit-scrollbar-thumb:hover { background: #00eaff; }
+        .command-link { transition: all 0.2s ease-in-out; }
+        .command-link:hover { background-color: #00ffc6; color: #0d0d0d; text-shadow: none; box-shadow: 0 0 10px #00ffc6; }
+        #content-output { scroll-behavior: smooth; }
+        #content-output > div { min-height: 100%; }
+        .animate-on-scroll { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+        .menu-hidden { opacity: 0; transform: translateY(-1rem) scale(0.95); pointer-events: none; transition: opacity 0.2s ease-out, transform 0.2s ease-out; }
+        .menu-visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; transition: opacity 0.2s ease-out, transform 0.2s ease-out; }
+        .backdrop-hidden { opacity: 0; pointer-events: none; transition: opacity 0.2s ease-out; }
+        .backdrop-visible { opacity: 1; pointer-events: auto; transition: opacity 0.2s ease-out; }
+        #matrix-toggle.active { color: #ffffff; text-shadow: 0 0 8px #00ffc6; }
+        .gslide-description { background: rgba(0, 0, 0, 0) !important; }
+        .gslide-title { color: #00ffc6 !important; font-family: 'Fira Code', monospace !important; text-shadow: 0 0 5px #00ffc6; }
+        .gslide-desc { color: #fff !important; font-family: 'Fira Code', monospace !important; }
+    </style>
+</head>
+<body class="p-0" data-command-text="./display_certificates.sh" data-current-dir="Certificates" data-theme="green">
+    <canvas id="matrix-bg"></canvas>
+    <div id="terminal" class="border-2 border-glow rounded-lg w-full h-screen mx-auto p-2 sm:p-4 flex flex-col bg-[#0d0d0d]/90">
+        <div class="flex items-center pb-2 border-b-2 border-glow mb-4 flex-shrink-0">
+    <div class="flex items-center text-sm md:text-base mr-auto">
+        <a href="index.html" title="Go to Home" class="mr-3 flex-shrink-0">
+            <img src="logo.png" alt="Home Icon" class="h-5 w-5 rounded-full object-cover border-2 border-current">
+        </a>
+        <p>user@portfolio: ~/<span id="current-dir"></span></p>
+    </div>
+    <div class="flex items-center space-x-2 md:space-x-4">
+        </div>
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <p id="system-clock" class="hidden md:block text-xs opacity-75"></p>
+                <button id="matrix-toggle" title="Toggle Matrix Effect" class="text-base p-2 focus:outline-none opacity-75 hover:opacity-100 transition-all">
+                    <i class="fas fa-laptop-code"></i>
+                </button>
+                <button id="menu-toggle" class="md:hidden text-xl p-2 focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-grow flex md:flex-row gap-4 md:gap-8 overflow-hidden">
+            <div class="hidden md:flex md:w-1/3 border-r-2 border-glow border-dashed pr-8 flex-col overflow-y-auto">
+                <pre id="ascii-art" class="text-xs text-left mb-4 text-glow-green whitespace-pre-wrap flex-shrink-0"></pre>
+                <div id="intro-text-container" class="mb-6 flex-shrink-0">
+                    <span id="intro-text" class="text-base"></span><span class="cursor"></span>
+                </div>
+                <nav id="desktop-navigation" class="flex flex-col space-y-2">
+                    <h3 class="text-glow-green text-lg mb-2">Available Commands:</h3>
+                    <a href="aboutme.html" class="command-link p-1 rounded">./about_me.sh</a>
+                    <a href="projects.html" class="command-link p-1 rounded">./list_projects.sh</a>
+                    <a href="videos.html" class="command-link p-1 rounded">./play_video_edits.sh</a>
+                    <a href="skills.html" class="command-link p-1 rounded">./show_skills.sh</a>
+                    <a href="certs.html" class="command-link p-1 rounded">./display_certificates.sh</a>
+                    <a href="resume.html" class="command-link p-1 rounded">./download_cv.sh</a>
+                    <a href="contact.html" class="command-link p-1 rounded">./contact_me.sh</a>
+                </nav>
+            </div>
+            <div id="content-display" class="w-full md:w-2/3 flex-grow flex flex-col overflow-hidden theme-green">
+                <div class="mb-4 flex-shrink-0">
+                    <p><span class="text-green-400">user@portfolio</span>:<span class="text-blue-400">~</span>$ <span id="command-output" class="cursor"></span></p>
+                </div>
+                <div id="content-output" class="flex-grow overflow-y-auto pr-2">
+                    <div id="certs" data-title="Certificates" data-theme="green">
+                         <h2 class="text-xl sm:text-2xl dynamic-glow mb-4 animate-on-scroll">Certificates</h2>
+                        <ul class="list-disc list-inside space-y-2 text-white animate-on-scroll">
+                            <li>C Language - CBytes</li>
+                            <li>C++(OOPs) Language - CBytes</li>
+                        </ul>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div id="menu-backdrop" class="backdrop-hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+    <nav id="navigation" class="menu-hidden md:hidden fixed top-6 right-2 sm:top-8 sm:right-4 bg-[#1a1a1a]/90 border-2 border-glow rounded-lg p-4 z-50 flex flex-col space-y-2">
+        <h3 class="text-glow-green text-lg mb-2">Commands:</h3>
+        <a href="aboutme.html" class="command-link p-1 rounded">./about_me.sh</a>
+        <a href="projects.html" class="command-link p-1 rounded">./list_projects.sh</a>
+        <a href="videos.html" class="command-link p-1 rounded">./play_video_edits.sh</a>
+        <a href="skills.html" class="command-link p-1 rounded">./show_skills.sh</a>
+        <a href="certs.html" class="command-link p-1 rounded">./display_certificates.sh</a>
+        <a href="resume.html" class="command-link p-1 rounded">./download_cv.sh</a>
+        <a href="contact.html" class="command-link p-1 rounded">./contact_me.sh</a>
+    </nav>
+    <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const terminal = document.getElementById('terminal');
+        const introTextElement = document.getElementById('intro-text');
+        const commandOutputElement = document.getElementById('command-output');
+        const asciiArtElement = document.getElementById('ascii-art');
+        const navigationElement = document.getElementById('navigation');
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuBackdrop = document.getElementById('menu-backdrop');
+        const systemClock = document.getElementById('system-clock');
+        const currentDirElement = document.getElementById('current-dir');
+        const contentDisplay = document.getElementById('content-display');
+        const introText = "Welcome to my interactive portfolio. Initializing systems... Boot sequence complete. Navigation unlocked.";
+        const asciiArt = `
++---------------------------------------------+
+|       _                   _   _   _   _     |
+|   |  |_|   _   |  |   _   _| | | | | |_     |
+|   |  |_|       |  |      |_  |_| |_|  _|    |
++---------------------------------------------+
+|        [>  FULL-STACK DEVELOPER  <]         |
+|        [> VIDEO EDITOR & CREATOR <]         |
++---------------------------------------------+
+`;
+        const typeSpeed = 50;
+        const commandTypeSpeed = 30;
+        
+        const lightbox = GLightbox({
+            selector: '.glightbox',
+            touchNavigation: true,
+            loop: true,
+            autoplayVideos: true,
+        });
+
+        // --- MODIFICATION START ---
+        // The loader animation and setTimeout are gone. We immediately show the terminal.
+        terminal.style.visibility = 'visible';
+        terminal.style.opacity = '1';
+        startTerminal();
+        // --- MODIFICATION END ---
+
+        function startTerminal() {
+            typeWriter(introTextElement, introText, typeSpeed, () => {
+                introTextElement.parentElement.querySelector('.cursor').style.display = 'none';
+            });
+
+            const commandText = document.body.dataset.commandText || './about_me.sh';
+            const dirName = document.body.dataset.currentDir || 'About Me';
+            const theme = document.body.dataset.theme || 'green';
+
+            currentDirElement.textContent = dirName;
+            contentDisplay.className = contentDisplay.className.replace(/theme-\w+/g, '');
+            contentDisplay.classList.add(`theme-${theme}`);
+            typeWriter(commandOutputElement, commandText, commandTypeSpeed);
+
+            document.querySelector('#content-output').scrollTop = 0; 
+            setupScrollAnimations();
+            setInterval(updateClock, 1000);
+            updateClock();
+        }
+
+        function typeWriter(element, text, speed, callback) {
+            let i = 0;
+            element.innerHTML = '';
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+
+        asciiArtElement.textContent = asciiArt;
+
+        function showMenu() {
+            navigationElement.classList.remove('menu-hidden');
+            navigationElement.classList.add('menu-visible');
+            menuBackdrop.classList.remove('backdrop-hidden');
+            menuBackdrop.classList.add('backdrop-visible');
+        }
+
+        function hideMenu() {
+            navigationElement.classList.remove('menu-visible');
+            navigationElement.classList.add('menu-hidden');
+            menuBackdrop.classList.remove('backdrop-visible');
+            menuBackdrop.classList.add('backdrop-hidden');
+        }
+
+        function toggleMenu() {
+            if (navigationElement.classList.contains('menu-hidden')) {
+                showMenu();
+            } else {
+                hideMenu();
+            }
+        }
+        
+        menuToggle.addEventListener('click', toggleMenu);
+        menuBackdrop.addEventListener('click', toggleMenu);
+        document.querySelectorAll('#navigation .command-link').forEach(link => {
+            link.addEventListener('click', hideMenu);
+        });
+
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            if (systemClock) {
+                systemClock.textContent = `[STATUS: ONLINE // SYS_TIME: ${hours}:${minutes}:${seconds}]`;
+            }
+        }
+
+        function setupScrollAnimations() {
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { root: document.querySelector('#content-output'), threshold: 0.1 });
+            animatedElements.forEach(el => observer.observe(el));
+        }
+        
+        const matrixCanvas = document.getElementById('matrix-bg');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        const matrixToggle = document.getElementById('matrix-toggle');
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const matrixChars = katakana + latin + nums;
+        const fontSize = 16;
+        let columns = Math.floor(matrixCanvas.width / fontSize);
+        let drops = [];
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+        let matrixAnimationId = null;
+        const matrixColor = '#00ffc6';
+
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(13, 13, 13, 0.05)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            matrixCtx.fillStyle = matrixColor;
+            matrixCtx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        function startMatrix() {
+            if (matrixAnimationId) return;
+            matrixCanvas.style.display = 'block';
+            matrixToggle.classList.add('active');
+            function animate() {
+                drawMatrix();
+                matrixAnimationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function stopMatrix() {
+            if (!matrixAnimationId) return;
+            cancelAnimationFrame(matrixAnimationId);
+            matrixAnimationId = null;
+            setTimeout(() => {
+                matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+                matrixCanvas.style.display = 'none';
+            }, 100);
+            matrixToggle.classList.remove('active');
+        }
+
+        startMatrix(); 
+        matrixToggle.addEventListener('click', () => {
+            if (matrixAnimationId) {
+                stopMatrix();
+            } else {
+                startMatrix();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+            columns = Math.floor(matrixCanvas.width / fontSize);
+            drops = [];
+            for (let x = 0; x < columns; x++) {
+                drops[x] = 1;
+            }
+        });
+
+        const contactForm = document.getElementById('contact-form');
+        if (contactForm) {
+            const formStatus = document.getElementById('form-status');
+            async function handleSubmit(event) {
+                event.preventDefault();
+                const status = formStatus;
+                const data = new FormData(event.target);
+                status.innerHTML = 'Sending...';
+                status.style.color = '#00ffff';
+                fetch(event.target.action, {
+                    method: contactForm.method,
+                    body: data,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        status.innerHTML = "Thanks for your submission!";
+                        status.style.color = '#00ffc6';
+                        contactForm.reset();
+                    } else {
+                        response.json().then(data => {
+                            if (Object.hasOwn(data, 'errors')) {
+                                status.innerHTML = data["errors"].map(error => error["message"]).join(", ");
+                            } else {
+                                status.innerHTML = "Oops! There was a problem submitting your form";
+                            }
+                            status.style.color = '#ff8c00'; 
+                        })
+                    }
+                }).catch(error => {
+                    status.innerHTML = "Oops! There was a problem submitting your form";
+                    status.style.color = '#ff8c00';
+                });
+            }
+            contactForm.addEventListener("submit", handleSubmit);
+        }
+    });
+</script>
+</body>
+</html>
